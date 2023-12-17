@@ -1,3 +1,4 @@
+import { Form } from "@/app/[username]/Form";
 import { db } from "@/db/db";
 import { tweet, user } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
@@ -34,7 +35,7 @@ export default async function UserPage({
 
   return (
     <>
-      <form
+      <Form
         action={async (formData: FormData) => {
           "use server";
 
@@ -61,7 +62,7 @@ export default async function UserPage({
           <textarea name="message"></textarea>
         </label>
         <button type="submit">Post</button>
-      </form>
+      </Form>
       <ul>
         {userData.tweets.map((tweet) => (
           <li>
