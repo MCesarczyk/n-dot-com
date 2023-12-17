@@ -1,7 +1,7 @@
 import { db } from "@/db/db";
 import { tweet, user } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
-import { unstable_cache } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
 
 const getCachedTweetsForUser = unstable_cache(
@@ -33,12 +33,42 @@ export default async function UserPage({
   }
 
   return (
-    <ul>
-      {userData.tweets.map((tweet) => (
-        <li>
-          <p>{tweet.message}</p>
-        </li>
-      ))}
-    </ul>
+    <>
+      <form
+        action={async (formData: FormData) => {
+          "use server";
+
+          const message = formData.get("message")?.toString();
+
+          if (!message) {
+            throw new Error("Message is required");
+          }
+
+          const insertData = {
+            message,
+            userId: 3,
+          } satisfies typeof tweet.$inferInsert;
+
+          await db.insert(tweet).values([insertData]);
+
+          revalidatePath(`/${params.username}`);
+
+          console.log({ message });
+        }}
+      >
+        <label>
+          Message
+          <textarea name="message"></textarea>
+        </label>
+        <button type="submit">Post</button>
+      </form>
+      <ul>
+        {userData.tweets.map((tweet) => (
+          <li>
+            <p>{tweet.message}</p>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
