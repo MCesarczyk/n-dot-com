@@ -1,28 +1,12 @@
 import { AutoRefresh } from "@/app/[username]/AutoRefresh";
 import { Form } from "@/app/[username]/Form";
+import { getCachedTweetsForUser } from "@/app/[username]/getCachedTweetsForUser";
+import { getCachedUser } from "@/app/getCachedUser";
 import { db } from "@/db/db";
-import { tweet, user } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
-import { revalidatePath, unstable_cache } from "next/cache";
+import { tweet } from "@/db/schema";
+import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-
-const getCachedTweetsForUser = unstable_cache(
-  async (username: string) => {
-    return db.query.user.findFirst({
-      where: eq(user.username, username),
-      with: {
-        tweets: {
-          orderBy: desc(tweet.createdAt),
-        },
-      },
-    });
-  },
-  ["user", "findFirst", "tweets"],
-  {
-    revalidate: 25,
-  }
-);
 
 export default async function UserPage({
   params,
@@ -30,8 +14,13 @@ export default async function UserPage({
   params: { username: string };
 }) {
   const userData = await getCachedTweetsForUser(params.username);
+  const users = await getCachedUser();
 
-  if (!userData) {
+  const currentUserId = users.find(
+    (user) => user.username === params.username
+  )?.id;
+
+  if (!userData || !currentUserId) {
     notFound();
   }
 
@@ -49,7 +38,7 @@ export default async function UserPage({
 
           const insertData = {
             message,
-            userId: 3,
+            userId: currentUserId,
           } satisfies typeof tweet.$inferInsert;
 
           await db.insert(tweet).values([insertData]);
