@@ -13,6 +13,7 @@ export function Form(
 
   return (
     <form
+    className="flex flex-col gap-2 mb-4"
       ref={ref}
       {...props}
       action={async (form) => {

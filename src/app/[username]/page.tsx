@@ -1,8 +1,10 @@
+import { AutoRefresh } from "@/app/[username]/AutoRefresh";
 import { Form } from "@/app/[username]/Form";
 import { db } from "@/db/db";
 import { tweet, user } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { revalidatePath, unstable_cache } from "next/cache";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 const getCachedTweetsForUser = unstable_cache(
@@ -57,19 +59,33 @@ export default async function UserPage({
           console.log({ message });
         }}
       >
-        <label>
+        <label className="flex gap-4">
           Message
-          <textarea name="message"></textarea>
+          <textarea name="message" className="w-full text-gray-950"></textarea>
         </label>
-        <button type="submit">Post</button>
+        <button
+          className="text-white bg-blue-800 hover:bg-blue-700 px-4 py-2 rounded-md block flex-grow-0"
+          type="submit"
+        >
+          Post
+        </button>
       </Form>
-      <ul>
+      <AutoRefresh />
+      <ul className="mb-4">
         {userData.tweets.map((tweet) => (
           <li>
-            <p>{tweet.message}</p>
+            <p className="border-b-gray-500 border-b-2 mb-2">{tweet.message}</p>
           </li>
         ))}
       </ul>
+      <div className="flex">
+        <Link
+          className="text-white bg-blue-800 hover:bg-blue-700 px-4 py-2 rounded-md block flex-grow-0"
+          href={"/"}
+        >
+          Back
+        </Link>
+      </div>
     </>
   );
 }
